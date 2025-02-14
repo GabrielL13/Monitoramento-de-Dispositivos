@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Monitoramento de Salas </title>
+    <script type = "module" src="login.js" defer></script>
+    <style>
+        body {
+            background-color: #22211f;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #615f5f;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.4);
+            width: 350px;
+            text-align: center;
+        }
+
+        .logo {
+            width: 120px;
+            margin-bottom: 15px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 7px 0;
+            border: none;
+            border-radius: 5px;
+            background-color: #333;
+            color: #e0e0e0;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #0088cc;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #0077b3;
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        footer {
+            position: absolute;
+            bottom: 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <img src="https://www.ifpb.edu.br/imagens/logotipos/ifpb-1" alt="Logo do IFPB" class="logo">
+        <h2>Monitoramento de Salas</h2>
+        <form id="loginForm">
+            <input type="text" id="matricula" placeholder="Matrícula" required>
+            <input type="password" id="password" placeholder="Senha" required>
+            <button type="submit">Entrar</button>
+            <p class="error" id="errorMessage"></p>
+        </form>
+    </div>
+
+    <footer>&copy; 2025 Desenvolvimento: IFPB </footer>
+
+</body>
+</html>
