@@ -2,11 +2,10 @@ import { database } from "./firebase.js";
 import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
 const dispositivosRef = ref(database, "Dispositivos");
+const tabela = document.getElementById("tabela-dados");
 
-// Atualizar tabela em tempo real
 onValue(dispositivosRef, (snapshot) => {
-    const tabela = document.getElementById("tabela-dados");
-    tabela.innerHTML = ""; // Limpa a tabela antes de atualizar
+    tabela.innerHTML = "";
 
     if (!snapshot.exists()) {
         tabela.innerHTML = "<tr><td colspan='4'>Nenhum dispositivo encontrado.</td></tr>";
@@ -17,21 +16,23 @@ onValue(dispositivosRef, (snapshot) => {
         const id = childSnapshot.key;
         const data = childSnapshot.val();
 
-        // Garantir que os valores existam
         const nome = data.nome || "Desconhecido";
-        const luzStatus = data.luz ? "Ligado" : "Desligado";
-        const arStatus = data.ar ? "Ligado" : "Desligado";
-        const luzColor = data.luz ? "green" : "red";
-        const arColor = data.ar ? "green" : "red";
 
-        // Criar nova linha para a tabela
+        const luzLigado = data.luz === true || data.luz === 1 || data.luz === "1";
+        const arLigado = data.ar === true || data.ar === 1 || data.ar === "1";
+
         const row = document.createElement("tr");
+        row.style.cursor = "pointer";
         row.innerHTML = `
             <td>${id}</td>
             <td>${nome}</td>
-            <td style="color: ${luzColor};">${luzStatus}</td>
-            <td style="color: ${arColor};">${arStatus}</td>
+            <td style="color: ${luzLigado ? "green" : "red"};">${luzLigado ? "Ligado" : "Desligado"}</td>
+            <td style="color: ${arLigado ? "green" : "red"};">${arLigado ? "Ligado" : "Desligado"}</td>
         `;
+
+        row.addEventListener("click", () => {
+            window.location.href = `registro.html?id=${encodeURIComponent(id)}`;
+        });
 
         tabela.appendChild(row);
     });

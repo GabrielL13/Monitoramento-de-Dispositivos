@@ -7,7 +7,7 @@ const firebaseConfig = {
     apiKey: "AIzaSyB6VS7sqzxv84g-WTGk0zxmrZuP6xv9pow",
     authDomain: "monitoramento-de-dispositivos.firebaseapp.com",
     projectId: "monitoramento-de-dispositivos",
-    storageBucket: "monitoramento-de-dispositivos.firebasestorage.app",
+    storageBucket: "monitoramento-de-dispositivos.firebasestorage.com",
     messagingSenderId: "317542641450",
     appId: "1:317542641450:web:749d30ed66f148abf0b853",
     measurementId: "G-TX3D42MP4V"
