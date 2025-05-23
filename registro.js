@@ -1,86 +1,92 @@
-import { database } from "./firebase.js";
-import { ref, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+import { db, ref, onValue } from "./firebase.js";
 
-const params = new URLSearchParams(window.location.search);
-const id = params.get("id");
+// Pega o ID da URL
+const urlParams = new URLSearchParams(window.location.search);
+const id = urlParams.get("id");
+console.log("ID da sala:", id);
 
-if (!id) {
-  alert("ID não encontrado na URL.");
-} else {
-  const titulo = document.getElementById("titulo");
-  const tabelaAr = document.getElementById("tabela-ar");
-  const tabelaLuz = document.getElementById("tabela-luz");
+// Referências dos elementos HTML
+const salaNome = document.getElementById("sala-nome");
+const tabelaAr = document.getElementById("tabela-ar");
+const tabelaLuz = document.getElementById("tabela-luz");
+const btnDownloadAr = document.getElementById("download-ar-json");
+const btnDownloadLuz = document.getElementById("download-luz-json");
 
-  const dispositivoRef = ref(database, `Dispositivos/${id}`);
+// Atualiza o nome da sala
+const salaRef = ref(db, `Dispositivos/${id}/nome`);
+console.log("Buscando nome da sala em:", `Dispositivos/${id}/nome`);
+onValue(salaRef, (snapshot) => {
+  if (snapshot.exists()) {
+    const nome = snapshot.val();
+    console.log("Nome da sala encontrado:", nome);
+    salaNome.innerText = nome;
+  } else {
+    console.warn("Sala não encontrada");
+    salaNome.innerText = "Sala não encontrada";
+  }
+});
 
-  get(dispositivoRef).then((snapshot) => {
-    if (!snapshot.exists()) {
-      titulo.textContent = "Dispositivo não encontrado.";
-      return;
-    }
-
-    const data = snapshot.val();
-
-    titulo.textContent = `Registros da Sala: ${data.nome || id}`;
-
-    const registrosAr = data.registros && data.registros.ar ? data.registros.ar : {};
-    const registrosLuz = data.registros && data.registros.luz ? data.registros.luz : {};
-
-    preencherTabela(registrosAr, tabelaAr);
-    preencherTabela(registrosLuz, tabelaLuz);
-  }).catch((error) => {
-    console.error("Erro ao obter dados:", error);
-    titulo.textContent = "Erro ao carregar dados.";
-  });
-
-  function preencherTabela(registros, tabela) {
+// Função para carregar registros
+function carregarRegistros(caminho, tabela) {
+  console.log("Buscando registros em:", caminho);
+  const registrosRef = ref(db, caminho);
+  onValue(registrosRef, (snapshot) => {
     tabela.innerHTML = "";
-    const chaves = Object.keys(registros).sort((a, b) => Number(a) - Number(b));
-
-    if (chaves.length === 0) {
-      tabela.innerHTML = `<tr><td colspan="3">Nenhum registro encontrado.</td></tr>`;
-      return;
+    if (snapshot.exists()) {
+      const dados = snapshot.val();
+      console.log("Registros encontrados:", dados);
+      const chaves = Object.keys(dados).sort();
+      chaves.forEach((chave, index) => {
+        const registro = dados[chave];
+        console.log(`Registro ${chave}:`, registro);
+        const linha = document.createElement("tr");
+        linha.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${registro.dataHora}</td>
+          <td>${registro.estado === 1 ? "Ligado" : "Desligado"}</td>
+        `;
+        tabela.appendChild(linha);
+      });
+    } else {
+      console.warn("Nenhum registro encontrado em", caminho);
+      const linha = document.createElement("tr");
+      linha.innerHTML = `<td colspan="3">Nenhum registro encontrado</td>`;
+      tabela.appendChild(linha);
     }
-
-    chaves.forEach((key, index) => {
-      const valor = registros[key]; // Exemplo: "01/01/0001 12:12:12 1"
-      const partes = valor.split(" ");
-      const dataHora = `${partes[0]} ${partes[1]}`;
-      const estado = partes[2] === "1" ? "Ligado" : "Desligado";
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${dataHora}</td>
-        <td>${estado}</td>
-      `;
-      tabela.appendChild(tr);
-    });
-  }
-
-  document.getElementById("download-ar").addEventListener("click", () => {
-    baixarJSON(tabelaAr, "ar");
   });
-
-  document.getElementById("download-luz").addEventListener("click", () => {
-    baixarJSON(tabelaLuz, "luz");
-  });
-
-  function baixarJSON(tabela, tipo) {
-    const linhas = Array.from(tabela.querySelectorAll("tr"));
-    const dados = linhas.map(linha => {
-      const colunas = linha.querySelectorAll("td");
-      return {
-        numero: colunas[0]?.textContent,
-        dataHora: colunas[1]?.textContent,
-        status: colunas[2]?.textContent,
-      };
-    });
-
-    const blob = new Blob([JSON.stringify(dados, null, 2)], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `registros_${tipo}.json`;
-    a.click();
-  }
 }
+
+// Carregar registros do Ar e da Luz
+carregarRegistros(`Dispositivos/${id}/registros/ar`, tabelaAr);
+carregarRegistros(`Dispositivos/${id}/registros/luz`, tabelaLuz);
+
+// Função para download dos registros
+function baixarRegistros(caminho, nomeArquivo) {
+  console.log("Preparando download de:", caminho);
+  const registrosRef = ref(db, caminho);
+  onValue(registrosRef, (snapshot) => {
+    if (snapshot.exists()) {
+      const dados = snapshot.val();
+      console.log("Dados para download:", dados);
+      const json = JSON.stringify(dados, null, 2);
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = nomeArquivo;
+      a.click();
+      URL.revokeObjectURL(url);
+    } else {
+      console.warn("Nenhum dado encontrado para download em", caminho);
+      alert("Nenhum dado encontrado para download.");
+    }
+  }, { onlyOnce: true });
+}
+
+// Eventos dos botões
+btnDownloadAr.addEventListener("click", () => {
+  baixarRegistros(`Dispositivos/${id}/registros/ar`, `registros_ar_${id}.json`);
+});
+btnDownloadLuz.addEventListener("click", () => {
+  baixarRegistros(`Dispositivos/${id}/registros/luz`, `registros_luz_${id}.json`);
+});

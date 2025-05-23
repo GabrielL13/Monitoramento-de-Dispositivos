@@ -1,7 +1,6 @@
-import { database } from "./firebase.js";
-import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+import { db, ref, onValue } from "./firebase.js";
 
-const dispositivosRef = ref(database, "Dispositivos");
+const dispositivosRef = ref(db, "Dispositivos");
 const tabela = document.getElementById("tabela-dados");
 
 onValue(dispositivosRef, (snapshot) => {

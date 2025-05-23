@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Registros da Sala</title>
   <script type="module" src="firebase.js"></script>
-  <script type="module" src="registros.js"></script>
+  <script type="module" src="registro.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -14,9 +14,11 @@
       padding: 20px;
       text-align: center;
     }
+
     h2, h3 {
       color: white;
     }
+
     table {
       width: 80%;
       margin: 20px auto;
@@ -25,27 +27,37 @@
       color: white;
       text-align: center;
     }
+
     th, td {
       border: 1px solid #333;
       padding: 10px;
     }
+
     th {
       background-color: #444;
     }
+
+    tr:hover {
+      background-color: #777;
+    }
+
     button, a {
       display: inline-block;
       margin: 10px 20px;
       padding: 10px 20px;
-      background-color: #444;
+      background-color: #0088cc;
       color: white;
       border: none;
       cursor: pointer;
       text-decoration: none;
       border-radius: 5px;
+      transition: background-color 0.3s;
     }
+
     button:hover, a:hover {
-      background-color: #666;
+      background-color: #0077b3;
     }
+
     .btn-container {
       margin: 20px auto;
       display: flex;
@@ -53,38 +65,57 @@
       flex-wrap: wrap;
       gap: 20px;
     }
+
     footer {
       margin-top: 40px;
       padding: 10px;
       background-color: #615f5f;
+      border-top: 3px solid #333;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
+
   <h2 id="sala-nome">Carregando...</h2>
 
   <h3>Registros do Ar-Condicionado</h3>
   <table>
-    <thead><tr><th>#</th><th>Data e Hora</th></tr></thead>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Data e Hora</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
     <tbody id="tabela-ar"></tbody>
   </table>
+
   <div class="btn-container">
     <button id="download-ar-json">Baixar registros de Ar (JSON)</button>
   </div>
 
   <h3>Registros da Luz</h3>
   <table>
-    <thead><tr><th>#</th><th>Data e Hora</th></tr></thead>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Data e Hora</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
     <tbody id="tabela-luz"></tbody>
   </table>
+
   <div class="btn-container">
     <button id="download-luz-json">Baixar registros de Luz (JSON)</button>
   </div>
 
   <div class="btn-container">
-    <a href="monitoramento.html">Voltar para Monitoramento</a>
+    <a href="monitoramento.html">Voltar ao Monitoramento</a>
   </div>
 
   <footer>&copy; 2025 Desenvolvimento: IFPB</footer>
+
 </body>
 </html>
