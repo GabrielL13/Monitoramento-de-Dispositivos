@@ -2,9 +2,9 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Monitoramento de Salas</title>
-    <script type="module" src="tabela.js"></script>
+    <script type="module" src="tabela.js" defer></script>
     <style>
         html, body {
             height: 100%;
@@ -19,15 +19,38 @@
         header {
             padding: 20px;
             background-color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         h2 {
             margin: 0;
         }
 
+        .botoes-admin {
+            display: none; 
+            gap: 10px;
+        }
+
+        .botoes-admin button {
+            padding: 10px 15px;
+            background-color: #0088cc;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .botoes-admin button:hover {
+            background-color: #0077b3;
+        }
+
         main {
             flex: 1;
             padding: 20px;
+            overflow-y: auto;
         }
 
         table {
@@ -66,6 +89,10 @@
 
     <header>
         <h2>Controle de Salas</h2>
+        <div class="botoes-admin" id="adminButtons">
+            <button onclick="window.location.href='dispositivo.html'">Adicionar Sala</button>
+            <button onclick="window.location.href='usuario.html'">Adicionar Usuário</button>
+        </div>
     </header>
 
     <main>
@@ -79,12 +106,20 @@
                 </tr>
             </thead>
             <tbody id="tabela-dados">
-                <!-- Linhas adicionadas via Firebase -->
             </tbody>
         </table>
     </main>
 
     <footer>&copy; 2025 Desenvolvimento: IFPB</footer>
+
+    <script>
+        const tipoUsuario = parseInt(localStorage.getItem("tipoUsuario"));
+        const adminButtons = document.getElementById("adminButtons");
+
+        if (tipoUsuario === 1) {
+            adminButtons.style.display = "flex";
+        }
+    </script>
 
 </body>
 </html>

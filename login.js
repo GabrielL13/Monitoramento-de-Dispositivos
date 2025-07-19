@@ -1,6 +1,5 @@
 import { db, ref, get } from "./firebase.js";
 
-// Captura o evento de login
 document.getElementById("loginForm").addEventListener("submit", async function(event) {
     event.preventDefault();
 
@@ -14,7 +13,6 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     }
 
     try {
-        // Busca a matrícula no banco de dados
         const userRef = ref(db, `User/${matricula}`);
         const snapshot = await get(userRef);
 
@@ -22,7 +20,14 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
             const userData = snapshot.val();
 
             if (userData.senha === password) {
-                window.location.href = "monitoramento.html"; // Redireciona após login bem-sucedido
+                if ("tipo" in userData) {
+                    localStorage.setItem("matricula", matricula);
+                    localStorage.setItem("tipoUsuario", userData.tipo); // 0 ou 1
+
+                    window.location.href = "monitoramento.html";
+                } else {
+                    errorMessage.textContent = "Usuário sem tipo definido.";
+                }
             } else {
                 errorMessage.textContent = "Senha incorreta.";
             }
