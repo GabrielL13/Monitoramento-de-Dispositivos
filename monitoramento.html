@@ -28,14 +28,19 @@
             margin: 0;
         }
 
+        #button-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
         .botoes-admin {
             display: none; 
             gap: 10px;
         }
 
-        .botoes-admin button {
+        .botoes-admin button, #logout-btn {
             padding: 10px 15px;
-            background-color: #0088cc;
             border: none;
             border-radius: 5px;
             color: white;
@@ -43,8 +48,20 @@
             cursor: pointer;
         }
 
+        .botoes-admin button {
+            background-color: #0088cc;
+        }
+
         .botoes-admin button:hover {
             background-color: #0077b3;
+        }
+        
+        #logout-btn {
+            background-color: #cc0000;
+        }
+        
+        #logout-btn:hover {
+            background-color: #b30000;
         }
 
         main {
@@ -76,6 +93,19 @@
             cursor: pointer;
         }
 
+        .deletar-btn {
+            padding: 8px 12px;
+            background-color: #cc0000;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .deletar-btn:hover {
+            background-color: #b30000;
+        }
+
         footer {
             background-color: #615f5f;
             text-align: center;
@@ -89,9 +119,12 @@
 
     <header>
         <h2>Controle de Salas</h2>
-        <div class="botoes-admin" id="adminButtons">
-            <button onclick="window.location.href='dispositivo.html'">Adicionar Sala</button>
-            <button onclick="window.location.href='usuario.html'">Adicionar Usuário</button>
+        <div id="button-container">
+            <div class="botoes-admin" id="adminButtons">
+                <button onclick="window.location.href='dispositivo.html'">Adicionar Sala</button>
+                <button onclick="window.location.href='usuario.html'">Adicionar Usuário</button>
+            </div>
+            <button id="logout-btn">Sair</button> 
         </div>
     </header>
 
@@ -103,23 +136,16 @@
                     <th>Nome</th>
                     <th>Luz</th>
                     <th>Ar-Condicionado</th>
+                    <th>Temperatura</th> 
+                    <th id="th-deletar" style="display: none;">Ações</th> 
                 </tr>
             </thead>
             <tbody id="tabela-dados">
-            </tbody>
+                </tbody>
         </table>
     </main>
 
     <footer>&copy; 2025 Desenvolvimento: IFPB</footer>
-
-    <script>
-        const tipoUsuario = parseInt(localStorage.getItem("tipoUsuario"));
-        const adminButtons = document.getElementById("adminButtons");
-
-        if (tipoUsuario === 1) {
-            adminButtons.style.display = "flex";
-        }
-    </script>
 
 </body>
 </html>
