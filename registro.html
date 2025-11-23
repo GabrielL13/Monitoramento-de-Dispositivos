@@ -1,121 +1,201 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Registros da Sala</title>
-  <script type="module" src="firebase.js"></script>
-  <script type="module" src="registro.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #22211f;
-      color: white;
-      padding: 20px;
-      text-align: center;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registros</title>
+    <link rel="stylesheet" href="style.css">
 
-    h2, h3 {
-      color: white;
-    }
+    <style>
+        body {
+            background-color: #1f1f1f;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
 
-    table {
-      width: 80%;
-      margin: 20px auto;
-      border-collapse: collapse;
-      background-color: #615f5f;
-      color: white;
-      text-align: center;
-    }
+        h1 {
+            margin-bottom: 10px;
+        }
 
-    th, td {
-      border: 1px solid #333;
-      padding: 10px;
-    }
+        .top-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
 
-    th {
-      background-color: #444;
-    }
+        .btn {
+            background-color: #cc0000;
+            padding: 10px 18px;
+            border: none;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+            border-radius: 6px;
+        }
 
-    tr:hover {
-      background-color: #777;
-    }
+        .btn:hover {
+            background-color: #211ef1;
+        }
 
-    button, a {
-      display: inline-block;
-      margin: 10px 20px;
-      padding: 10px 20px;
-      background-color: #0088cc;
-      color: white;
-      border: none;
-      cursor: pointer;
-      text-decoration: none;
-      border-radius: 5px;
-      transition: background-color 0.3s;
-    }
+        table {
+            width: 90%;
+            margin: 0 auto 40px auto;
+            border-collapse: collapse;
+            background-color: #615f5f;
+            border-radius: 10px;
+            overflow: hidden;
+        }
 
-    button:hover, a:hover {
-      background-color: #0077b3;
-    }
+        th, td {
+            padding: 12px 15px;
+            text-align: center;
+        }
 
-    .btn-container {
-      margin: 20px auto;
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 20px;
-    }
+        th {
+            background-color: #3a3a3a;
+            font-size: 15px;
+        }
 
-    footer {
-      margin-top: 40px;
-      padding: 10px;
-      background-color: #615f5f;
-      border-top: 3px solid #333;
-      font-size: 14px;
-    }
-  </style>
+        td {
+            background-color: #2b2b2b;
+        }
+
+        tr:nth-child(even) td {
+            background-color: #262626;
+        }
+
+        #downloadBtn {
+            display: none;
+            background-color: #4CAF50;
+            margin: 20px auto;
+            padding: 10px 18px;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+
+        #downloadBtn:hover {
+            background-color: #45a049;
+        }
+
+        /* POPUP MODAL */
+        .popup {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .popup-content {
+            background: #2e2e2e;
+            padding: 25px;
+            width: 320px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0px 0px 10px #000;
+        }
+
+        .popup h3 {
+            margin-bottom: 15px;
+        }
+
+        .popup-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .btn-cancelar {
+            background-color: #777;
+        }
+
+        .btn-confirmar {
+            background-color: #d9534f;
+        }
+
+        .input-temp {
+            width: 80px;
+            font-size: 20px;
+            padding: 5px;
+            border-radius: 6px;
+            border: none;
+            text-align: center;
+        }
+    </style>
 </head>
+
 <body>
 
-  <h2 id="sala-nome">Carregando...</h2>
+    <h1>Controle da Sala</h1>
 
-  <h3>Registros do Ar-Condicionado</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Data e Hora</th>
-        <th>Estado</th>
-      </tr>
-    </thead>
-    <tbody id="tabela-ar"></tbody>
-  </table>
+    <div class="top-controls">
+        <button class="btn" id="powerArBtn">Power Ar</button>
+        <button class="btn" id="temperaturaBtn">Definir Temperatura</button>
+        <button class="btn" id="powerLuzBtn">Power Luz</button>
+    </div>
 
-  <div class="btn-container">
-    <button id="download-ar-json">Baixar registros de Ar (JSON)</button>
-  </div>
+    <h2>Registros do Ar-Condicionado</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Data e Hora</th>
+                <th>Estado</th>
+                <th>Temperatura (°C)</th>
+            </tr>
+        </thead>
+        <tbody id="registros-ar"></tbody>
+    </table>
 
-  <h3>Registros da Luz</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Data e Hora</th>
-        <th>Estado</th>
-      </tr>
-    </thead>
-    <tbody id="tabela-luz"></tbody>
-  </table>
+    <h2>Registros da Luz</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Data e Hora</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody id="registros-luz"></tbody>
+    </table>
 
-  <div class="btn-container">
-    <button id="download-luz-json">Baixar registros de Luz (JSON)</button>
-  </div>
+    <button id="downloadBtn">Baixar Registros</button>
 
-  <div class="btn-container">
-    <a href="monitoramento.html">Voltar ao Monitoramento</a>
-  </div>
+    <!-- Popup Power -->
+    <div id="popupPower" class="popup">
+        <div class="popup-content">
+            <h3>Confirmar ação</h3>
+            <p>Deseja alterar o estado?</p>
+            <div class="popup-buttons">
+                <button id="cancelPower" class="btn btn-cancelar">Cancelar</button>
+                <button id="confirmPower" class="btn btn-confirmar">Confirmar</button>
+            </div>
+        </div>
+    </div>
 
-  <footer>&copy; 2025 Desenvolvimento: IFPB</footer>
+    <!-- Popup Temperatura -->
+    <div id="popupTemperatura" class="popup">
+        <div class="popup-content">
+            <h3>Definir Temperatura</h3>
+            <input id="inputTemperatura" type="number" class="input-temp" min="16" max="31" value="20">
+            <div class="popup-buttons">
+                <button id="cancelTemperatura" class="btn btn-cancelar">Cancelar</button>
+                <button id="confirmTemperatura" class="btn btn-confirmar">Aplicar</button>
+            </div>
+        </div>
+    </div>
 
+    <script type="module" src="firebase.js"></script>
+    <script type="module" src="registro.js"></script>
 </body>
 </html>

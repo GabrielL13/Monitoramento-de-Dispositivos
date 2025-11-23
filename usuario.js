@@ -1,49 +1,62 @@
-import { getDatabase, ref, get, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { app } from "./firebaseConfig.js";
+import { db, ref, set, remove } from "./firebase.js";
 
-const db = getDatabase(app);
+const form = document.getElementById("form-usuario");
+const mensagem = document.getElementById("mensagem");
 
-export function carregarTabela(tipoUsuario) {
-    const tabela = document.getElementById("tabela-dados");
-    tabela.innerHTML = "";
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-    const dispositivosRef = ref(db, "Dispositivos");
-    get(dispositivosRef).then((snapshot) => {
-        if (snapshot.exists()) {
-            const dados = snapshot.val();
-            for (let id in dados) {
-                const sala = dados[id];
-                const linha = document.createElement("tr");
+  const matricula = document.getElementById("matriculaUsuario").value;
+  const nome = document.getElementById("nomeUsuario").value;
+  const email = document.getElementById("emailUsuario").value;
+  const senha = document.getElementById("senhaUsuario").value;
+  const tipo = document.getElementById("tipoUsuario").value;
 
-                linha.innerHTML = `
-                    <td>${id}</td>
-                    <td>${sala.nome || ""}</td>
-                    <td>${sala.ar ? "Ligado" : "Desligado"}</td>
-                    <td>${sala.luz ? "Ligada" : "Desligada"}</td>
-                    <td>${tipoUsuario === 1 ? `<button class="btn-deletar" data-id="${id}" title="Excluir">❌</button>` : ""}</td>
-                `;
+  await set(ref(db, "User/" + matricula), {
+    nome,
+    email,
+    senha,
+    tipo
+  });
 
-                if (tipoUsuario === 1) {
-                    linha.querySelector(".btn-deletar").addEventListener("click", (e) => {
-                        e.stopPropagation();
-                        const confirmar = confirm("Tem certeza que deseja excluir esta sala?");
-                        if (confirmar) {
-                            const salaId = e.target.dataset.id;
-                            const salaRef = ref(db, `Dispositivos/${salaId}`);
-                            remove(salaRef).then(() => {
-                                alert("Sala excluída com sucesso!");
-                                carregarTabela(tipoUsuario);
-                            });
-                        }
-                    });
-                }
+  mensagem.textContent = "Usuário cadastrado com sucesso!";
+  form.reset();
+});
 
-                linha.addEventListener("click", () => {
-                    window.location.href = `sala.html?id=${id}`;
-                });
+const btnOpen = document.getElementById("btnOpenModal");
+const btnCancel = document.getElementById("btnCancelModal");
+const modal = document.getElementById("modalExclusao");
+const btnConfirm = document.getElementById("btnConfirmDelete");
+const inputMatricula = document.getElementById("matriculaDelete");
 
-                tabela.appendChild(linha);
-            }
-        }
-    });
-}
+btnOpen.addEventListener("click", () => {
+  modal.style.display = "flex";
+  inputMatricula.focus();
+});
+
+btnCancel.addEventListener("click", () => {
+  modal.style.display = "none";
+  inputMatricula.value = "";
+});
+
+window.addEventListener("click", (e) => {
+  if (e.target === modal) {
+    modal.style.display = "none";
+  }
+});
+
+btnConfirm.addEventListener("click", async () => {
+  const matricula = inputMatricula.value.trim();
+
+  if (matricula === "") {
+    alert("Por favor, digite uma matrícula.");
+    return;
+  }
+
+  await remove(ref(db, "User/" + matricula));
+
+  alert("Usuário removido com sucesso.");
+
+  modal.style.display = "none";
+  inputMatricula.value = "";
+});
