@@ -1,4 +1,4 @@
-import { db, ref, onValue, get, update, set } from "./firebase.js";
+import { db, ref, onValue, get, set } from "./firebase.js";
 
 const id = localStorage.getItem("dispositivoIdParaRegistro");
 const tipoUsuario = localStorage.getItem("tipoUsuario");
@@ -31,15 +31,37 @@ const refRegLuz = ref(db, `Dispositivos/${id}/registros/luz`);
 function formatarEstadoAr(v) { return v == 1 ? "Ligado" : "Desligado"; }
 function formatarEstadoLuz(v) { return v == 1 ? "Ligada" : "Desligada"; }
 
+function parseDataHoraBR(str) {
+    if (!str) return new Date(0);
+    // remove possíveis vírgulas e trim
+    const cleaned = String(str).replace(",", " ").replace(/\s+/g, " ").trim();
+    const parts = cleaned.split(" ");
+    if (parts.length < 2) return new Date(0);
+    const [dataPart, horaPart] = [parts[0], parts.slice(1).join(" ")];
+
+    const dataSplit = dataPart.split("/");
+    if (dataSplit.length !== 3) return new Date(0);
+    const d = parseInt(dataSplit[0], 10);
+    const m = parseInt(dataSplit[1], 10) - 1;
+    const a = parseInt(dataSplit[2], 10);
+
+    const horaSplit = horaPart.split(":");
+    const hh = parseInt(horaSplit[0] || "0", 10);
+    const mm = parseInt(horaSplit[1] || "0", 10);
+    const ss = parseInt(horaSplit[2] || "0", 10);
+
+    return new Date(a, m, d, hh, mm, ss);
+}
+
 function carregarRegistros() {
     onValue(refRegAr, (snapshot) => {
         tabelaAr.innerHTML = "";
         const dados = snapshot.val();
         if (dados) {
             const registros = Object.entries(dados);
-            registros.sort((a, b) => new Date(b[1].dataHora) - new Date(a[1].dataHora));
-            const ultimos50 = registros.slice(0, 50);
-            ultimos50.forEach(([, r], index) => {
+            registros.sort((a, b) => parseDataHoraBR(b[1].dataHora) - parseDataHoraBR(a[1].dataHora));
+            const ultimos15 = registros.slice(0, 15);
+            ultimos15.forEach(([, r], index) => {
                 tabelaAr.innerHTML += `
                     <tr>
                         <td>${index + 1}</td>
@@ -48,6 +70,8 @@ function carregarRegistros() {
                         <td>${r.temperatura ?? "-"}</td>
                     </tr>`;
             });
+        } else {
+            tabelaAr.innerHTML = `<tr><td colspan="4">Nenhum registro disponível.</td></tr>`;
         }
     });
 
@@ -56,9 +80,9 @@ function carregarRegistros() {
         const dados = snapshot.val();
         if (dados) {
             const registros = Object.entries(dados);
-            registros.sort((a, b) => new Date(b[1].dataHora) - new Date(a[1].dataHora));
-            const ultimos50 = registros.slice(0, 50);
-            ultimos50.forEach(([, r], index) => {
+            registros.sort((a, b) => parseDataHoraBR(b[1].dataHora) - parseDataHoraBR(a[1].dataHora));
+            const ultimos15 = registros.slice(0, 15);
+            ultimos15.forEach(([, r], index) => {
                 tabelaLuz.innerHTML += `
                     <tr>
                         <td>${index + 1}</td>
@@ -66,6 +90,8 @@ function carregarRegistros() {
                         <td>${formatarEstadoLuz(r.estado)}</td>
                     </tr>`;
             });
+        } else {
+            tabelaLuz.innerHTML = `<tr><td colspan="3">Nenhum registro disponível.</td></tr>`;
         }
     });
 }
@@ -99,11 +125,11 @@ temperaturaBtn.onclick = async () => {
     }
 
     await set(refTemperatura, temp);
-    await set(refTemperaturaFlag, true);
+    await set(refTemperaturaFlag, 1);
 
     setTimeout(() => {
-        set(refTemperaturaFlag, false);
-    }, 60000);
+        set(refTemperaturaFlag, 0);
+    }, 30000);
 
     alert("Temperatura enviada!");
 };
