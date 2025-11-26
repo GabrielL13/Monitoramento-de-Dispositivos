@@ -1,0 +1,10 @@
+body {
+  background-color: #1f1f1f;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  padding: 20px;
+}
+
+.btn { background-color: #cc0000; padding: 10px 18px; border: none; color: white; font-size: 15px; cursor: pointer; border-radius: 6px; }
+table { width: 90%; margin: 0 auto 40px auto; border-collapse: collapse; background-color: #615f5f; border-radius: 10px; overflow: hidden; }
+th, td { padding: 12px 15px; text-align: center; }

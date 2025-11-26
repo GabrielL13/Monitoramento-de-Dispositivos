@@ -60,9 +60,12 @@ function carregarDispositivos(tipoUsuario) {
             const data = childSnapshot.val();
 
             const nome = data.nome || "Desconhecido";
-            const luzLigado = Boolean(Number(data.luz.estado));
-            const arLigado = Boolean(Number(data.ar.estado));
-            const temperaturaTexto = data.ar.temperatura ? `${data.ar.temperatura}°C` : "-";
+
+            const luzLigado = data.luz?.estado == 1;
+            const arLigado = data.ar?.estado == 1;
+
+            const temperatura = data.ar?.temperatura;
+            const temperaturaTexto = temperatura !== undefined ? `${temperatura}°C` : "-";
 
             const row = document.createElement("tr");
             row.dataset.id = id;

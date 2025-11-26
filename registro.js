@@ -1,4 +1,4 @@
-import { db, ref, onValue, get, update, push } from "./firebase.js";
+import { db, ref, onValue, get, update, set } from "./firebase.js";
 
 const id = localStorage.getItem("dispositivoIdParaRegistro");
 const tipoUsuario = localStorage.getItem("tipoUsuario");
@@ -16,36 +16,30 @@ const powerArBtn = document.getElementById("powerArBtn");
 const powerLuzBtn = document.getElementById("powerLuzBtn");
 const temperaturaBtn = document.getElementById("temperaturaBtn");
 
-// botão de download apenas para tipoUsuario = 1
 if (tipoUsuario === "1") {
     downloadBtn.style.display = "block";
 }
 
-// === REFERÊNCIAS CORRETAS PARA SUA ÁRVORE ===
-const refArEstado = ref(db, `Dispositivos/${id}/ar`);
-const refLuzEstado = ref(db, `Dispositivos/${id}/luz`);
-
-const refTemperatura = ref(db, `Dispositivos/${id}/temperatura`);
-const refTemperaturaFlag = ref(db, `Dispositivos/${id}/temperatura_flag`);
+const refArEstado = ref(db, `Dispositivos/${id}/ar/estado`);
+const refLuzEstado = ref(db, `Dispositivos/${id}/luz/estado`);
+const refTemperatura = ref(db, `Dispositivos/${id}/ar/temperatura`);
+const refTemperaturaFlag = ref(db, `Dispositivos/${id}/ar/temperatura_flag`);
 
 const refRegAr = ref(db, `Dispositivos/${id}/registros/ar`);
 const refRegLuz = ref(db, `Dispositivos/${id}/registros/luz`);
 
-
-// === FORMATADORES ===
 function formatarEstadoAr(v) { return v == 1 ? "Ligado" : "Desligado"; }
 function formatarEstadoLuz(v) { return v == 1 ? "Ligada" : "Desligada"; }
 
-
-// === CARREGAR REGISTROS ===
 function carregarRegistros() {
     onValue(refRegAr, (snapshot) => {
         tabelaAr.innerHTML = "";
         const dados = snapshot.val();
         if (dados) {
-            const chaves = Object.keys(dados).slice(-50);
-            chaves.forEach((key, index) => {
-                const r = dados[key];
+            const registros = Object.entries(dados);
+            registros.sort((a, b) => new Date(b[1].dataHora) - new Date(a[1].dataHora));
+            const ultimos50 = registros.slice(0, 50);
+            ultimos50.forEach(([, r], index) => {
                 tabelaAr.innerHTML += `
                     <tr>
                         <td>${index + 1}</td>
@@ -61,9 +55,10 @@ function carregarRegistros() {
         tabelaLuz.innerHTML = "";
         const dados = snapshot.val();
         if (dados) {
-            const chaves = Object.keys(dados).slice(-50);
-            chaves.forEach((key, index) => {
-                const r = dados[key];
+            const registros = Object.entries(dados);
+            registros.sort((a, b) => new Date(b[1].dataHora) - new Date(a[1].dataHora));
+            const ultimos50 = registros.slice(0, 50);
+            ultimos50.forEach(([, r], index) => {
                 tabelaLuz.innerHTML += `
                     <tr>
                         <td>${index + 1}</td>
@@ -77,48 +72,24 @@ function carregarRegistros() {
 
 carregarRegistros();
 
-
-// === POWER AR ===
 powerArBtn.onclick = async () => {
     const snap = await get(refArEstado);
     const estadoAtual = snap.val() ?? 0;
     const novoEstado = estadoAtual === 1 ? 0 : 1;
-
-    await update(refArEstado, novoEstado);
-
-    const tempSnap = await get(refTemperatura);
-
-    push(refRegAr, {
-        dataHora: new Date().toLocaleString(),
-        estado: novoEstado,
-        temperatura: tempSnap.val() ?? "-"
-    });
-
+    await set(refArEstado, novoEstado);
     alert(`Ar ${novoEstado ? "Ligado" : "Desligado"}!`);
 };
 
-
-// === POWER LUZ ===
 powerLuzBtn.onclick = async () => {
     const snap = await get(refLuzEstado);
     const estadoAtual = snap.val() ?? 0;
     const novoEstado = estadoAtual ? 0 : 1;
-
-    await update(refLuzEstado, novoEstado);
-
-    push(refRegLuz, {
-        dataHora: new Date().toLocaleString(),
-        estado: novoEstado
-    });
-
+    await set(refLuzEstado, novoEstado);
     alert(`Luz ${novoEstado ? "Ligada" : "Desligada"}!`);
 };
 
-
-// === DEFINIR TEMPERATURA ===
 temperaturaBtn.onclick = async () => {
     let temp = prompt("Defina a temperatura (16 a 31°C):");
-
     if (temp === null) return;
 
     temp = Number(temp);
@@ -127,24 +98,16 @@ temperaturaBtn.onclick = async () => {
         return;
     }
 
-    await update(refTemperatura, temp);
-    await update(refTemperaturaFlag, true);
-
-    push(refRegAr, {
-        dataHora: new Date().toLocaleString(),
-        estado: 1,
-        temperatura: temp
-    });
+    await set(refTemperatura, temp);
+    await set(refTemperaturaFlag, true);
 
     setTimeout(() => {
-        update(refTemperaturaFlag, false);
+        set(refTemperaturaFlag, false);
     }, 60000);
 
     alert("Temperatura enviada!");
 };
 
-
-// === DOWNLOAD CSV ===
 downloadBtn.onclick = async () => {
     const arSnap = await get(refRegAr);
     const luzSnap = await get(refRegLuz);

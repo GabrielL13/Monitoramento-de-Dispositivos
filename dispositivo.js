@@ -1,4 +1,4 @@
-import { db, ref, set, get } from "./firebase.js";
+import { db, ref, set, get, push } from "./firebase.js";
 
 const form = document.getElementById("form-dispositivo");
 const mensagem = document.getElementById("mensagem");
@@ -18,7 +18,6 @@ form.addEventListener("submit", async (e) => {
   try {
     const dispositivoRef = ref(db, `Dispositivos/${id}`);
 
-    // Verifica se já existe esse ID no banco
     const snapshot = await get(dispositivoRef);
     if (snapshot.exists()) {
       mensagem.textContent = `Já existe uma sala com o ID "${id}".`;
@@ -30,29 +29,32 @@ form.addEventListener("submit", async (e) => {
 
     const dados = {
       nome,
-      ar: false,
-      luz: false,
+      ar: {
+        estado: 0,
+        temperatura: -1,
+        temperatura_flag: 0
+      },
+      luz: {
+        estado: 0
+      },
       registros: {
-        ar: {
-          1: {
-            dataHora,
-            estado: 0
-          }
-        },
-        luz: {
-          1: {
-            dataHora,
-            estado: 0
-          }
-        }
+        ar: {},
+        luz: {}
       }
     };
 
     await set(dispositivoRef, dados);
 
+    const registrosArRef = ref(db, `Dispositivos/${id}/registros/ar`);
+    const registrosLuzRef = ref(db, `Dispositivos/${id}/registros/luz`);
+
+    await push(registrosArRef, { dataHora, estado: 0, temperatura: -1 });
+    await push(registrosLuzRef, { dataHora, estado: 0 });
+
     mensagem.textContent = `Sala "${nome}" cadastrada com sucesso!`;
     mensagem.style.color = "lightgreen";
     form.reset();
+
   } catch (error) {
     console.error("Erro ao cadastrar sala:", error);
     mensagem.textContent = "Erro ao cadastrar. Tente novamente.";
