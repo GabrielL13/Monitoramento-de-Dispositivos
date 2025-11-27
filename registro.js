@@ -28,28 +28,24 @@ const refTemperaturaFlag = ref(db, `Dispositivos/${id}/ar/temperatura_flag`);
 const refRegAr = ref(db, `Dispositivos/${id}/registros/ar`);
 const refRegLuz = ref(db, `Dispositivos/${id}/registros/luz`);
 
-function formatarEstadoAr(v) { return v == 1 ? "Ligado" : "Desligado"; }
-function formatarEstadoLuz(v) { return v == 1 ? "Ligada" : "Desligada"; }
+function formatarEstadoAr(v) { return v === true ? "Ligado" : "Desligado"; }
+function formatarEstadoLuz(v) { return v === true ? "Ligada" : "Desligada"; }
 
 function parseDataHoraBR(str) {
     if (!str) return new Date(0);
-    // remove possíveis vírgulas e trim
     const cleaned = String(str).replace(",", " ").replace(/\s+/g, " ").trim();
     const parts = cleaned.split(" ");
     if (parts.length < 2) return new Date(0);
     const [dataPart, horaPart] = [parts[0], parts.slice(1).join(" ")];
-
     const dataSplit = dataPart.split("/");
     if (dataSplit.length !== 3) return new Date(0);
     const d = parseInt(dataSplit[0], 10);
     const m = parseInt(dataSplit[1], 10) - 1;
     const a = parseInt(dataSplit[2], 10);
-
     const horaSplit = horaPart.split(":");
     const hh = parseInt(horaSplit[0] || "0", 10);
     const mm = parseInt(horaSplit[1] || "0", 10);
     const ss = parseInt(horaSplit[2] || "0", 10);
-
     return new Date(a, m, d, hh, mm, ss);
 }
 
@@ -62,11 +58,12 @@ function carregarRegistros() {
             registros.sort((a, b) => parseDataHoraBR(b[1].dataHora) - parseDataHoraBR(a[1].dataHora));
             const ultimos15 = registros.slice(0, 15);
             ultimos15.forEach(([, r], index) => {
+                const estado = r.estado === true ? true : false;
                 tabelaAr.innerHTML += `
                     <tr>
                         <td>${index + 1}</td>
                         <td>${r.dataHora}</td>
-                        <td>${formatarEstadoAr(r.estado)}</td>
+                        <td>${formatarEstadoAr(estado)}</td>
                         <td>${r.temperatura ?? "-"}</td>
                     </tr>`;
             });
@@ -83,11 +80,12 @@ function carregarRegistros() {
             registros.sort((a, b) => parseDataHoraBR(b[1].dataHora) - parseDataHoraBR(a[1].dataHora));
             const ultimos15 = registros.slice(0, 15);
             ultimos15.forEach(([, r], index) => {
+                const estado = r.estado === true ? true : false;
                 tabelaLuz.innerHTML += `
                     <tr>
                         <td>${index + 1}</td>
                         <td>${r.dataHora}</td>
-                        <td>${formatarEstadoLuz(r.estado)}</td>
+                        <td>${formatarEstadoLuz(estado)}</td>
                     </tr>`;
             });
         } else {
@@ -100,16 +98,16 @@ carregarRegistros();
 
 powerArBtn.onclick = async () => {
     const snap = await get(refArEstado);
-    const estadoAtual = snap.val() ?? 0;
-    const novoEstado = estadoAtual === 1 ? 0 : 1;
+    const estadoAtual = snap.val() === true;
+    const novoEstado = !estadoAtual;
     await set(refArEstado, novoEstado);
     alert(`Ar ${novoEstado ? "Ligado" : "Desligado"}!`);
 };
 
 powerLuzBtn.onclick = async () => {
     const snap = await get(refLuzEstado);
-    const estadoAtual = snap.val() ?? 0;
-    const novoEstado = estadoAtual ? 0 : 1;
+    const estadoAtual = snap.val() === true;
+    const novoEstado = !estadoAtual;
     await set(refLuzEstado, novoEstado);
     alert(`Luz ${novoEstado ? "Ligada" : "Desligada"}!`);
 };
@@ -117,41 +115,37 @@ powerLuzBtn.onclick = async () => {
 temperaturaBtn.onclick = async () => {
     let temp = prompt("Defina a temperatura (16 a 31°C):");
     if (temp === null) return;
-
     temp = Number(temp);
     if (isNaN(temp) || temp < 16 || temp > 31) {
         alert("Temperatura inválida! Use valores entre 16 e 31.");
         return;
     }
-
     await set(refTemperatura, temp);
-    await set(refTemperaturaFlag, 1);
-
+    await set(refTemperaturaFlag, true);
     setTimeout(() => {
-        set(refTemperaturaFlag, 0);
-    }, 30000);
-
+        set(refTemperaturaFlag, false);
+    }, 60000);
     alert("Temperatura enviada!");
 };
 
 downloadBtn.onclick = async () => {
     const arSnap = await get(refRegAr);
     const luzSnap = await get(refRegLuz);
-
     const dadosAr = arSnap.val();
     const dadosLuz = luzSnap.val();
-
     let csv = "Tipo,Data/Hora,Estado,Temperatura\n";
 
     if (dadosAr) {
         Object.values(dadosAr).forEach(r => {
-            csv += `Ar,${r.dataHora},${formatarEstadoAr(r.estado)},${r.temperatura ?? "-"}\n`;
+            const estado = r.estado === true ? "Ligado" : "Desligado";
+            csv += `Ar,${r.dataHora},${estado},${r.temperatura ?? "-"}\n`;
         });
     }
 
     if (dadosLuz) {
         Object.values(dadosLuz).forEach(r => {
-            csv += `Luz,${r.dataHora},${formatarEstadoLuz(r.estado)},-\n`;
+            const estado = r.estado === true ? "Ligada" : "Desligada";
+            csv += `Luz,${r.dataHora},${estado},-\n`;
         });
     }
 
