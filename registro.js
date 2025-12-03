@@ -124,7 +124,7 @@ temperaturaBtn.onclick = async () => {
     await set(refTemperaturaFlag, true);
     setTimeout(() => {
         set(refTemperaturaFlag, false);
-    }, 60000);
+    }, 5000);
     alert("Temperatura enviada!");
 };
 
